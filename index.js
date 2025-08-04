@@ -1,7 +1,7 @@
 // Initialize Lucide icons
 lucide.createIcons();
 
-// Tab functionality
+// Tab functionality with smooth transitions
 const tabTriggers = document.querySelectorAll('.tab-trigger');
 const tabContents = document.querySelectorAll('.tab-content');
 
@@ -9,17 +9,50 @@ tabTriggers.forEach(trigger => {
     trigger.addEventListener('click', () => {
         const tabName = trigger.getAttribute('data-tab');
         
-        // Remove active class from all triggers and contents
-        tabTriggers.forEach(t => t.classList.remove('active'));
-        tabContents.forEach(c => c.classList.remove('active'));
+        // Don't do anything if the tab is already active
+        if (trigger.classList.contains('active')) return;
         
-        // Add active class to clicked trigger and corresponding content
+        // Remove active class from all triggers
+        tabTriggers.forEach(t => t.classList.remove('active'));
+        
+        // Add active class to clicked trigger
         trigger.classList.add('active');
-        document.getElementById(tabName + '-tab').classList.add('active');
+        
+        // Fade out current active content
+        const currentActiveContent = document.querySelector('.tab-content.active');
+        if (currentActiveContent) {
+            currentActiveContent.style.opacity = '0';
+            currentActiveContent.style.transform = 'translateY(10px)';
+            
+            setTimeout(() => {
+                currentActiveContent.classList.remove('active');
+                
+                // Show new content
+                const newContent = document.getElementById(tabName + '-tab');
+                newContent.classList.add('active');
+                
+                // Trigger reflow to ensure transition works
+                newContent.offsetHeight;
+                
+                // Fade in new content
+                setTimeout(() => {
+                    newContent.style.opacity = '1';
+                    newContent.style.transform = 'translateY(0)';
+                }, 50);
+            }, 300);
+        } else {
+            // If no active content, show new content immediately
+            const newContent = document.getElementById(tabName + '-tab');
+            newContent.classList.add('active');
+            setTimeout(() => {
+                newContent.style.opacity = '1';
+                newContent.style.transform = 'translateY(0)';
+            }, 50);
+        }
     });
 });
 
-// Toast notification function
+// Toast notification function with improved animation
 function showToast(title, description, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
@@ -30,13 +63,19 @@ function showToast(title, description, type = 'success') {
     
     document.body.appendChild(toast);
     
-    // Show toast
-    setTimeout(() => toast.classList.add('show'), 100);
+    // Show toast with smooth animation
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
     
     // Hide and remove toast
     setTimeout(() => {
         toast.classList.remove('show');
-        setTimeout(() => document.body.removeChild(toast), 300);
+        setTimeout(() => {
+            if (document.body.contains(toast)) {
+                document.body.removeChild(toast);
+            }
+        }, 300);
     }, 3000);
 }
 
